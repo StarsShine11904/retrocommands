@@ -2,14 +2,17 @@ package com.periut.retrocommands.command.optional;
 
 import com.periut.retrocommands.api.Command;
 import com.periut.retrocommands.util.SharedCommandSource;
-import com.periut.cryonicconfig.UtilityCryonicConfig;
+import com.periut.retrocommands.optionaldep.cryonicconfig.CryonicConfigCompat;
 
 public class ReloadCryonicConfig implements Command {
 
     @Override
     public void command(SharedCommandSource commandSource, String[] parameters) {
-        UtilityCryonicConfig.init(System.getProperty("user.dir"));
-        commandSource.sendFeedback("Cryonic Config has been refreshed!");
+        if (CryonicConfigCompat.reload(System.getProperty("user.dir"))) {
+            commandSource.sendFeedback("Cryonic Config has been refreshed!");
+        } else {
+            commandSource.sendFeedback("Cryonic Config is not available!");
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.periut.retrocommands;
 
+import com.periut.retrocommands.optionaldep.cryonicconfig.CryonicConfigCompat;
 import com.periut.retrocommands.util.RetroChatUtil;
 import com.periut.retrocommands.util.VanillaMobs;
 import net.fabricmc.api.ModInitializer;
@@ -26,7 +27,10 @@ public class RetroCommands implements ModInitializer {
     @Override
     public void onInitialize() {
         mojangFix = FabricLoader.getInstance().isModLoaded("mojangfixstationapi");
-        cryConfig = FabricLoader.getInstance().isModLoaded("cryonicconfig");
+        // Cryonic Config is reached by reflection, so require the API to have resolved too -
+        // an incompatible version must not register /reloadcryonicconfig.
+        cryConfig = FabricLoader.getInstance().isModLoaded("cryonicconfig")
+                && CryonicConfigCompat.isAvailable();
         bhCreative = FabricLoader.getInstance().isModLoaded("bhcreative");
 
         RetroChatUtil.addDefaultCommands();
