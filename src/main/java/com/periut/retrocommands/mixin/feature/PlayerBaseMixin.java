@@ -1,7 +1,8 @@
 package com.periut.retrocommands.mixin.feature;
 
 import com.periut.retrocommands.api.PlayerWarps;
-import com.periut.retrocommands.command.extra.God;
+import com.periut.retrocommands.command.builtin.GodCommand;
+import com.periut.retrocommands.command.builtin.NoclipCommand;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
@@ -20,13 +21,26 @@ public class PlayerBaseMixin implements PlayerWarps {
     public void onGod(Entity i, int par2, CallbackInfoReturnable<Boolean> cir) {
         PlayerEntity player = (PlayerEntity) (Object) this;
 
-        if (God.isPlayerInvincible.containsKey(player.name))
-            if (God.isPlayerInvincible.get(player.name)) {
-                if (player.fireTicks > 0)
-                    player.fireTicks = 0;
-
-                cir.cancel();
+        if (GodCommand.isInvincible(player.name)) {
+            if (player.fireTicks > 0) {
+                player.fireTicks = 0;
             }
+            cir.cancel();
+        }
+    }
+
+    /**
+     * A noclipping player is never inside a wall, however far inside one they are.
+     *
+     * <p>One override for two symptoms, because beta asks this same question for both: {@code LivingEntity}'s
+     * base tick suffocates anyone it returns true for, and {@code HeldItemRenderer.renderScreenOverlays} plasters
+     * the block's texture over the whole screen. Flying through rock does neither if the answer is no.
+     */
+    @Inject(method = "isInsideWall", at = @At("HEAD"), cancellable = true)
+    private void retrocommands$noclipIgnoresWalls(CallbackInfoReturnable<Boolean> cir) {
+        if (NoclipCommand.isActive(((PlayerEntity) (Object) this).name)) {
+            cir.setReturnValue(false);
+        }
     }
 
     @Unique

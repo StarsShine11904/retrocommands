@@ -10,6 +10,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityRegistry;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,6 +23,9 @@ import java.util.List;
 
 @Mixin(Block.class)
 public class BlockBaseMixin {
+    /** Beta's monster spawner. Hardcoded because {@code Block.SPAWNER} is not loaded yet here. */
+    private static final int SPAWNER_ID = 52;
+
     @Redirect(method = "<clinit>", at = @At(value = "NEW", target = "(II)Lnet/minecraft/block/SpawnerBlock;"))
     private static SpawnerBlock staticBlock(int i, int j) {
         if (FabricLoader.getInstance().isModLoaded("station-blockitems-v0"))
@@ -30,10 +34,16 @@ public class BlockBaseMixin {
             return new SpawnerBlock(i, j);
     }
 
+    /**
+     * Carries the mob a spawner was given with into the block that gets placed.
+     *
+     * <p>The block is identified by its id rather than by its name: reading the name goes through
+     * the client-only translation table, which is not merely wasteful on a dedicated server but
+     * throws {@link NoClassDefFoundError} there.
+     */
     @Inject(method = "onPlaced(Lnet/minecraft/world/World;IIII)V", at = @At("HEAD"))
     public void onBlockPlaced(World i, int j, int k, int l, int direction, CallbackInfo ci) {
-        if (Block.BLOCKS[i.getBlockId(j, k, l)].getTranslatedName().startsWith("Mon")) //ster Spawner
-        {
+        if (i.getBlockId(j, k, l) == SPAWNER_ID) {
             try {
                 Box b = Box.create(j - 5, k - 5, l - 5, j + 5, k + 5, l + 5);
                 List<PlayerEntity> players = i.collectEntitiesByClass(PlayerEntity.class, b);
@@ -43,9 +53,9 @@ public class BlockBaseMixin {
                         mob = ((ItemInstanceStr) (Object) players.get(0).inventory.getSelectedItem()).spc$getStr();
                 } else {
                     for (PlayerEntity p : players) {
-                        if (p.getHand().getItem().getTranslatedName().startsWith("Mon")) {
-                            if (p.inventory.getSelectedItem() != null)
-                                mob = ((ItemInstanceStr) (Object) p.inventory.getSelectedItem()).spc$getStr();
+                        ItemStack held = p.inventory.getSelectedItem();
+                        if (held != null && held.itemId == SPAWNER_ID) {
+                            mob = ((ItemInstanceStr) (Object) held).spc$getStr();
                             break;
                         }
                     }

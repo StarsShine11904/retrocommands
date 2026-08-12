@@ -28,6 +28,12 @@ public final class RetroApiCompat {
         return item == null ? -1 : item.id;
     }
 
+    /** The identifier RetroAPI registered an item under, or null. */
+    public static String identifierOf(Item item) {
+        var registration = RetroRegistry.getItemRegistration(item);
+        return registration == null || registration.getId() == null ? null : registration.getId().toString();
+    }
+
     /** Max stack size for the item behind an identifier, or -1 if unknown. */
     public static int maxCountOf(String identifier) {
         Item item = RetroRegistry.getItemByStringId(identifier);

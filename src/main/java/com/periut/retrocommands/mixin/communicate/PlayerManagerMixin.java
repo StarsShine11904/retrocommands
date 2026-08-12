@@ -1,6 +1,7 @@
 package com.periut.retrocommands.mixin.communicate;
 
 import com.periut.retrocommands.RetroCommandsNetworking;
+import com.periut.retrocommands.network.ServerCommandNetworking;
 import com.periut.retrocommands.util.ServerUtil;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -25,6 +26,8 @@ public abstract class PlayerManagerMixin {
         ServerPlayNetworkHandler serverPlayNetworkHandler = (ServerPlayNetworkHandler) par1.networkHandler;
         ServerUtil.informPlayerOpStatus(serverPlayNetworkHandler.getName());
         ServerUtil.informPlayerDisabledCommands(serverPlayNetworkHandler.getName());
+        // The tree is per-player: it holds only the commands this player's rights allow.
+        ServerCommandNetworking.sendTree(par1);
 
         String playerNames = "";
         for (Object object : players) {
